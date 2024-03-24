@@ -5,6 +5,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -18,9 +19,9 @@ public class MultipleKnapsackProblem {
         State bestState = null;
         int bestValue = 0;
         stack.push(initialState);
-        int maxStackSize = 0;
+        int maxStackSize = 0; //the maximum nodes that were put in stack during the execution
 
-        while (!stack.isEmpty()) {
+        while (!stack.isEmpty()) { //DFS is exhaustive search, so we keep searching until the stack is empty
             State currentState = stack.pop();
             int currentValue = currentState.calculateTotalValue();
             if (currentValue > bestValue) {
@@ -40,14 +41,14 @@ public class MultipleKnapsackProblem {
     }
 
     public static State bfsSearch(State initialState) {
-        Queue<State> stack = new LinkedList<>();
+        Queue<State> queue = new LinkedList<>();
         State bestState = null;
         int bestValue = 0;
-        stack.add(initialState);
-        int maxStackSize = 0;
+        queue.add(initialState);
+        int maxQueueSize = 0;
 
-        while (!stack.isEmpty()) {
-            State currentState = stack.poll();
+        while (!queue.isEmpty()) {
+            State currentState = queue.poll();
             int currentValue = currentState.calculateTotalValue();
             if (currentValue > bestValue) {
                 bestValue = currentValue;
@@ -55,15 +56,78 @@ public class MultipleKnapsackProblem {
             }
             List<State> successors = currentState.getSuccessors();
             for (State successor : successors) {
-                stack.add(successor);
+                queue.add(successor);
             }
-            if(stack.size() > maxStackSize){
-                maxStackSize = stack.size();
+            if(queue.size() > maxQueueSize){
+                maxQueueSize = queue.size();
             }
         }
-        System.out.println("maxStackSize: " + maxStackSize);
+        System.out.println("maxQueueSize: " + maxQueueSize);
         return bestState; // Return the best state  found
     }
+
+    public static State aStarSearch(State initialState){
+        PriorityQueue<State> open = new PriorityQueue<>(new AStarComparator());
+        State bestState = null;
+        int bestValue = 0;
+        open.add(initialState);
+        int maxOpenSize = 0;
+        boolean goalReached = false;
+        while(!open.isEmpty() && !goalReached){
+            State currentState = open.poll();
+            System.out.println("Current state: " + currentState);
+            System.out.println("item index: " + currentState.nextItemIndex);
+            System.out.println("Current value: " + currentState.calculateTotalValue());
+            System.out.println("f(n) = " + currentState.calculateCost() + " + " + currentState.calculateHeuristic());
+            System.out.println("------------------------------------------------------------------------------------");
+            int currentValue = currentState.calculateTotalValue();
+            if (currentValue > bestValue) {
+                bestValue = currentValue;
+                bestState = currentState;
+            }
+            if (currentState.nextItemIndex >= currentState.items.size()) {
+                goalReached = true;
+
+            }
+            List<State> successors = currentState.getSuccessors();
+            
+            for (State successor : successors) {
+                System.out.println("Successor: " + successor);
+                System.out.println("item index: " + successor.nextItemIndex);
+                System.out.println("Successor value: " + successor.calculateTotalValue());
+                System.out.println("f(n) = " + successor.calculateCost() + " + " + successor.calculateHeuristic());
+                open.add(successor);
+            }
+            if(open.size() > maxOpenSize){
+                maxOpenSize = open.size();
+            }
+        }
+        System.out.println("maxOpenSize: " + maxOpenSize);
+        return bestState;
+    }
+
+    public static State bfsOneSack(State initialState, int knapsackID){
+        Queue<State> queue = new LinkedList<>();
+        State bestState = null;
+        int bestValue = 0;
+        queue.add(initialState);
+
+        while(!queue.isEmpty()){
+            State currentState = queue.poll();
+            int currentValue = currentState.calculateTotalValue();
+            if (currentValue > bestValue) {
+                bestValue = currentValue;
+                bestState = currentState;
+            }
+            List<State> successors = currentState.getSuccessors(knapsackID);
+            for (State successor : successors) {
+                queue.add(successor);
+            }
+        }
+        return bestState;
+    }
+
+
 
     public static void main(String[] args) {
         // Create items
@@ -82,9 +146,9 @@ public class MultipleKnapsackProblem {
         Item item13 = new Item(14, 9);
         Item item14 = new Item(16, 11);
         Item item15 = new Item(20, 15);
-        Item item16 = new Item(22, 17);
-        Item item17 = new Item(9, 5);
-        Item item18 = new Item(26, 20);
+        // Item item16 = new Item(22, 17);
+        // Item item17 = new Item(9, 5);
+        // Item item18 = new Item(26, 20);
         // Item item19 = new Item(21, 13);
         // Item item20 = new Item(30, 22);
 
@@ -104,15 +168,19 @@ public class MultipleKnapsackProblem {
         // Item item14 = new Item(36, 30);
 	    // Item item15 = new Item(36, 25);
         // Create knapsacks
-        Knapsack knapsack1 = new Knapsack(500);
-        Knapsack knapsack2 = new Knapsack(1000);
-        Knapsack knapsack3 = new Knapsack(1200);
+        Knapsack knapsack1 = new Knapsack(40);
+        Knapsack knapsack2 = new Knapsack(24);
+        Knapsack knapsack3 = new Knapsack(70);
+        // Knapsack knapsack4 = new Knapsack(1000);
+        // Knapsack knapsack5 = new Knapsack(1200);
 
         // Create list of knapsacks and items
         List<Knapsack> knapsacks = new ArrayList<>();
         knapsacks.add(knapsack1);
         knapsacks.add(knapsack2);
         knapsacks.add(knapsack3);
+        // knapsacks.add(knapsack4);
+        // knapsacks.add(knapsack5);
 
 
         List<Item> items = new ArrayList<>();
@@ -141,7 +209,7 @@ public class MultipleKnapsackProblem {
 
         State initialState = new State(knapsacks, items);
         // Solve the problem
-        State bestStateResult = bfsSearch(initialState);
+        State bestStateResult = aStarSearch(initialState);
 
         // Print the best state found
         System.out.println(bestStateResult);

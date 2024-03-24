@@ -2,15 +2,18 @@
 
     import java.util.ArrayList;
     import java.util.Arrays;
+    import java.util.Comparator;
     import java.util.List;
     import java.util.Objects;
+    import java.util.stream.Collectors;
 
     public class State {
-        int[] knapsackWeights;
-        List<Knapsack> knapsacks;
-        List<Item> items;
-        int[] itemInKnapsack;
-        int nextItemIndex;
+        int[] knapsackWeights; //current weights of all knapsacks, size = K (number of knapsacks)
+        List<Knapsack> knapsacks; // size = K (number of knapsacks), k.capacity
+        List<Item> items; // size = N (number of items), n.weight, n.value
+        int[] itemInKnapsack; // size = N (number of items), -1 if not packed, k if packed in knapsack k
+        // [0, -1, 1, 2, 0] means item 0 is packed in knapsack 0, item 1 is not packed, item 2 is packed in knapsack 1, item 3 is packed in knapsack 2, item 4 is packed in knapsack 0
+        int nextItemIndex; // index of the next item to consider, can also represent the depths of the state/node in the search tree
 
         public State(List<Knapsack> knapsacks, List<Item> items) {
             this.knapsacks = knapsacks;
@@ -18,10 +21,10 @@
             this.knapsackWeights = new int[knapsacks.size()];
             this.itemInKnapsack = new int[items.size()];
             Arrays.fill(this.itemInKnapsack, -1);
-            this.nextItemIndex = 0;
+            this.nextItemIndex = 0; //start with the first item
         }
 
-        public List<State> getSuccessors() {
+        public List<State> getSuccessors() { // method that generates the successors of a node/state
             List<State> successors = new ArrayList<>();
             if (nextItemIndex >= items.size()) {
                 return successors; // No more items to consider
@@ -41,11 +44,29 @@
             return successors;
         }
 
+        public List<State> getSuccessors(int knapsackID){ 
+            List<State> successors = new ArrayList<>();
+            if (nextItemIndex >= items.size()) {
+                return successors; // No more items to consider
+            }
+            // Try packing the next item into each knapsack
+            State clone = this.clone();
+            if (clone.packItem(nextItemIndex, knapsackID)) {
+                clone.nextItemIndex++; // Move to the next item
+                successors.add(clone);
+            }
+            // Add a successor state for skipping the item
+            State skippedItemState = this.clone();
+            skippedItemState.nextItemIndex++;
+            successors.add(skippedItemState);
+            return successors;
+        }
+
         public boolean packItem(int itemIndex, int knapsackIndex) {
             Item item = items.get(itemIndex);
+
             Knapsack knapsack = knapsacks.get(knapsackIndex);
             if (itemInKnapsack[itemIndex] == -1 && knapsackWeights[knapsackIndex] + item.weight <= knapsack.capacity) {
-                //itemPacked[itemIndex] = true;
                 knapsackWeights[knapsackIndex] += item.weight;
                 itemInKnapsack[itemIndex] = knapsackIndex;
                 return true;
@@ -63,14 +84,22 @@
             return totalValue;
         }
 
+        public int calculateCost(){
+            return -calculateTotalValue();
+        }
+
+
+
         @Override
-        public State clone() {
+        public State clone() { //method to generate a copy of the current object/state
             State cloned = new State(this.knapsacks, this.items);
             cloned.knapsackWeights = this.knapsackWeights.clone();
             cloned.itemInKnapsack = this.itemInKnapsack.clone();
             cloned.nextItemIndex = this.nextItemIndex;
             return cloned;
         }
+
+        
 
         @Override
         public boolean equals(Object o) {
@@ -93,4 +122,36 @@
             return "KnapsackWeights=" + Arrays.toString(knapsackWeights) +
                 ", itemInKnapsack=" + Arrays.toString(itemInKnapsack);
         }
+
+        public int calculateHeuristic() {
+            // Calculate remaining capacities for each knapsack
+            int[] remainingCapacities = new int[knapsacks.size()];
+            for (int i = 0; i < knapsacks.size(); i++) {
+                remainingCapacities[i] = knapsacks.get(i).capacity - knapsackWeights[i];
+            }
+        
+            // Consider only items from nextItemIndex onwards
+            List<Item> unplacedItems = new ArrayList<>(items.subList(nextItemIndex, items.size()));
+            unplacedItems.sort((item1, item2) -> Double.compare(item2.value / (double) item2.weight, item1.value / (double) item1.weight));
+        
+            // Estimate potential value addition from unplaced items
+            int heuristicValue = 0;
+            for (int i = 0; i < remainingCapacities.length; i++) {
+                int capacity = remainingCapacities[i];
+                for (Item item : unplacedItems) {
+                    if (capacity >= item.weight) {
+                        heuristicValue += item.value;
+                        capacity -= item.weight; // Adjust remaining capacity
+                    } else {
+                        // "Virtually" place part of the item to utilize remaining capacity
+                        double partialValue = ((double) capacity / item.weight) * item.value;
+                        heuristicValue += partialValue;
+                        break; // Proceed to the next knapsack
+                    }
+                }
+            }
+        
+            return heuristicValue;
+        }
     }
+

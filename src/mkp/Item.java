@@ -8,4 +8,8 @@ public class Item {
         this.weight = weight;
         this.value = value;
     }
+
+    public String toString() {
+        return "Item(" + weight + ", " + value + ")";
+    }
 }
