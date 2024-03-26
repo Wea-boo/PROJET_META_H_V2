@@ -6,4 +6,8 @@ public class Knapsack {
     public Knapsack(int capacity) {
         this.capacity = capacity;
     }
+    @Override
+    public String toString() {
+        return "Knapsack(" + capacity + ")";
+    }
 }

@@ -6,10 +6,17 @@
     "configurations": [
         {
             "type": "java",
+            "name": "MultipleKnapsackProblem",
+            "request": "launch",
+            "mainClass": "mkp.MultipleKnapsackProblem",
+            "projectName": "PROJET_META_H_V2_764d001b"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}",
             "vmArgs": "-Xms512m -Xmx10g"
-        },
+        }
     ]
 }

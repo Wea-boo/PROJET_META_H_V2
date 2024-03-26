@@ -1,5 +1,7 @@
 package mkp;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
@@ -7,12 +9,32 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 
 
 
 public class MultipleKnapsackProblem {
+    private static final Random rand = new Random();
+    private static final int nbTests = 10;
+    public static class SearchResult {
+        State bestState;
+        long nodesExplored;
+        int maxStackSize;
+        int bestValue;
+
+        public SearchResult(State bestState, long nodesExplored, int maxStackSize, int bestValue) {
+            this.bestState = bestState;
+            this.nodesExplored = nodesExplored;
+            this.maxStackSize = maxStackSize;
+            this.bestValue = bestValue;
+        }
+
+        public String toString() {
+            return "Best value: " + bestValue + ", Nodes explored: " + nodesExplored + ", Max stack size: " + maxStackSize;
+        }
+    }
 
     public static State dfsSearch(State initialState) {
         Stack<State> stack = new Stack<>();
@@ -20,9 +42,10 @@ public class MultipleKnapsackProblem {
         int bestValue = 0;
         stack.push(initialState);
         int maxStackSize = 0; //the maximum nodes that were put in stack during the execution
-
+        long nodesExplored = 0;
         while (!stack.isEmpty()) { //DFS is exhaustive search, so we keep searching until the stack is empty
             State currentState = stack.pop();
+            nodesExplored++;
             int currentValue = currentState.calculateTotalValue();
             if (currentValue > bestValue) {
                 bestValue = currentValue;
@@ -37,18 +60,46 @@ public class MultipleKnapsackProblem {
             }
         }
         System.out.println("maxStackSize: " + maxStackSize);
+        System.out.println("nodesExplored: " + nodesExplored);
         return bestState; // Return the best state  found
     }
-
+    // DFS modified in order to record data for testing purposes:
+    public static SearchResult dfsSearchTesting(State initialState) {
+        Stack<State> stack = new Stack<>();
+        State bestState = null;
+        int bestValue = 0;
+        stack.push(initialState);
+        int maxStackSize = 0; //the maximum nodes that were put in stack during the execution
+        long nodesExplored = 0;
+        while (!stack.isEmpty()) {
+            State currentState = stack.pop();
+            nodesExplored++;
+            int currentValue = currentState.calculateTotalValue();
+            if (currentValue > bestValue) {
+                bestValue = currentValue;
+                bestState = currentState;
+            }
+            List<State> successors = currentState.getSuccessors();
+            for (State successor : successors) {
+                stack.push(successor);
+            }
+            if(stack.size() > maxStackSize){
+                maxStackSize = stack.size();
+            }
+        }
+        return new SearchResult(bestState, nodesExplored, maxStackSize, bestValue);
+    }
+    
     public static State bfsSearch(State initialState) {
         Queue<State> queue = new LinkedList<>();
         State bestState = null;
         int bestValue = 0;
         queue.add(initialState);
         int maxQueueSize = 0;
-
+        long nodesExplored = 0;
         while (!queue.isEmpty()) {
             State currentState = queue.poll();
+            nodesExplored++;
             int currentValue = currentState.calculateTotalValue();
             if (currentValue > bestValue) {
                 bestValue = currentValue;
@@ -63,7 +114,34 @@ public class MultipleKnapsackProblem {
             }
         }
         System.out.println("maxQueueSize: " + maxQueueSize);
+        System.out.println("nodesExplored: " + nodesExplored);
         return bestState; // Return the best state  found
+    }
+    // BFS modified in order to record data for testing purposes:
+    public static SearchResult bfsSearchTesting(State initialState) {
+        Queue<State> queue = new LinkedList<>();
+        State bestState = null;
+        int bestValue = 0;
+        queue.add(initialState);
+        int maxQueueSize = 0;
+        long nodesExplored = 0;
+        while (!queue.isEmpty()) {
+            State currentState = queue.poll();
+            nodesExplored++;
+            int currentValue = currentState.calculateTotalValue();
+            if (currentValue > bestValue) {
+                bestValue = currentValue;
+                bestState = currentState;
+            }
+            List<State> successors = currentState.getSuccessors();
+            for (State successor : successors) {
+                queue.add(successor);
+            }
+            if (queue.size() > maxQueueSize) {
+                maxQueueSize = queue.size();
+            }
+        }
+        return new SearchResult(bestState, nodesExplored, maxQueueSize, bestValue);
     }
 
     public static State aStarSearch(State initialState){
@@ -72,14 +150,16 @@ public class MultipleKnapsackProblem {
         int bestValue = 0;
         open.add(initialState);
         int maxOpenSize = 0;
+        long nodesExplored = 0;
         boolean goalReached = false;
         while(!open.isEmpty() && !goalReached){
             State currentState = open.poll();
-            System.out.println("Current state: " + currentState);
-            System.out.println("item index: " + currentState.nextItemIndex);
-            System.out.println("Current value: " + currentState.calculateTotalValue());
-            System.out.println("f(n) = " + currentState.calculateCost() + " + " + currentState.calculateHeuristic());
-            System.out.println("------------------------------------------------------------------------------------");
+            nodesExplored++;
+            // System.out.println("Current state: " + currentState);
+            // System.out.println("item index: " + currentState.nextItemIndex);
+            // System.out.println("Current value: " + currentState.calculateTotalValue());
+            // System.out.println("f(n) = " + currentState.calculateCost() + " + " + currentState.calculateHeuristic());
+            // System.out.println("------------------------------------------------------------------------------------");
             int currentValue = currentState.calculateTotalValue();
             if (currentValue > bestValue) {
                 bestValue = currentValue;
@@ -87,136 +167,151 @@ public class MultipleKnapsackProblem {
             }
             if (currentState.nextItemIndex >= currentState.items.size()) {
                 goalReached = true;
-
             }
             List<State> successors = currentState.getSuccessors();
-            
             for (State successor : successors) {
-                System.out.println("Successor: " + successor);
-                System.out.println("item index: " + successor.nextItemIndex);
-                System.out.println("Successor value: " + successor.calculateTotalValue());
-                System.out.println("f(n) = " + successor.calculateCost() + " + " + successor.calculateHeuristic());
+                // System.out.println("Successor: " + successor);
+                // System.out.println("item index: " + successor.nextItemIndex);
+                // System.out.println("Successor value: " + successor.calculateTotalValue());
+                // System.out.println("f(n) = " + successor.calculateCost() + " + " + successor.calculateHeuristic());
                 open.add(successor);
             }
             if(open.size() > maxOpenSize){
                 maxOpenSize = open.size();
-            }
+            } 
         }
         System.out.println("maxOpenSize: " + maxOpenSize);
+        System.out.println("nodesExplored: " + nodesExplored);
         return bestState;
     }
-
-    public static State bfsOneSack(State initialState, int knapsackID){
-        Queue<State> queue = new LinkedList<>();
+    // A* modified in order to record data for testing purposes:
+    public static SearchResult aStarSearchTesting(State initialState) {
+        PriorityQueue<State> open = new PriorityQueue<>(new AStarComparator());
         State bestState = null;
         int bestValue = 0;
-        queue.add(initialState);
-
-        while(!queue.isEmpty()){
-            State currentState = queue.poll();
+        open.add(initialState);
+        int maxOpenSize = 0;
+        long nodesExplored = 0;
+        boolean goalReached = false;
+        while (!open.isEmpty() && !goalReached) {
+            State currentState = open.poll();
+            nodesExplored++;
             int currentValue = currentState.calculateTotalValue();
             if (currentValue > bestValue) {
                 bestValue = currentValue;
                 bestState = currentState;
             }
-            List<State> successors = currentState.getSuccessors(knapsackID);
+            if (currentState.nextItemIndex >= currentState.items.size()) {
+                goalReached = true;
+            }
+            List<State> successors = currentState.getSuccessors();
             for (State successor : successors) {
-                queue.add(successor);
+                open.add(successor);
+            }
+            if (open.size() > maxOpenSize) {
+                maxOpenSize = open.size();
             }
         }
-        return bestState;
+        return new SearchResult(bestState, nodesExplored, maxOpenSize, bestValue);
+    }
+    
+
+    private static List<Item> generateItems(int N) {
+        List<Item> items = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            int weight = 1 + rand.nextInt(100); // Adjust range as needed.
+            int value = 1 + rand.nextInt(100); // Adjust range as needed.
+            items.add(new Item(weight, value));
+        }
+        return items;
     }
 
-
-
-    public static void main(String[] args) {
-        // Create items
-        Item item1 = new Item(6, 6);
-        Item item2 = new Item(6, 3);
-        Item item3 = new Item(9, 5);
-        Item item4 = new Item(12, 8);
-        Item item5 = new Item(15, 12);
-        Item item6 = new Item(18, 21);
-        Item item7 = new Item(17, 16);
-        Item item8 = new Item(24, 19);
-        Item item9 = new Item(19, 14);
-        Item item10 = new Item(27, 18);
-        Item item11 = new Item(10, 7);
-        Item item12 = new Item(8, 4);
-        Item item13 = new Item(14, 9);
-        Item item14 = new Item(16, 11);
-        Item item15 = new Item(20, 15);
-        // Item item16 = new Item(22, 17);
-        // Item item17 = new Item(9, 5);
-        // Item item18 = new Item(26, 20);
-        // Item item19 = new Item(21, 13);
-        // Item item20 = new Item(30, 22);
-
-        // Item item1 = new Item(48, 10);
-        // Item item2 = new Item(30, 30);
-        // Item item3 = new Item(42, 25);
-        // Item item4 = new Item(36, 50);
-        // Item item5 = new Item(36, 35);
-        // Item item6 = new Item(48, 30);
-        // Item item7 = new Item(42, 15);
-        // Item item8 = new Item(42, 40);
-        // Item item9 = new Item(36, 30);
-        // Item item10 = new Item(24, 35);
-        // Item item11 = new Item(30, 45);
-        // Item item12 = new Item(30, 10);
-        // Item item13 = new Item(42, 20);
-        // Item item14 = new Item(36, 30);
-	    // Item item15 = new Item(36, 25);
-        // Create knapsacks
-        Knapsack knapsack1 = new Knapsack(40);
-        Knapsack knapsack2 = new Knapsack(24);
-        Knapsack knapsack3 = new Knapsack(70);
-        // Knapsack knapsack4 = new Knapsack(1000);
-        // Knapsack knapsack5 = new Knapsack(1200);
-
-        // Create list of knapsacks and items
+    private static List<Knapsack> generateKnapsacks(int K, int totalItemWeight) {
         List<Knapsack> knapsacks = new ArrayList<>();
-        knapsacks.add(knapsack1);
-        knapsacks.add(knapsack2);
-        knapsacks.add(knapsack3);
-        // knapsacks.add(knapsack4);
-        // knapsacks.add(knapsack5);
+        for (int i = 0; i < K; i++) {
+            int capacity = (int) (totalItemWeight * (0.2 + 0.3 * rand.nextDouble())); // Example: 20%-50% of total weight
+            knapsacks.add(new Knapsack(capacity));
+        }
+        return knapsacks;
+    }
 
-
-        List<Item> items = new ArrayList<>();
-        items.add(item1);
-        items.add(item2);
-        items.add(item3);
-        items.add(item4);
-        items.add(item5);
-        items.add(item6);
-        items.add(item7);
-        items.add(item8);
-        items.add(item9);
-        items.add(item10);
-        // items.add(item11);
-        // items.add(item12);
-        // items.add(item13);
-        // items.add(item14);
-        // items.add(item15);
-        // items.add(item16);
-        // items.add(item17);
-        // items.add(item18);
-        // items.add(item19);
-        // items.add(item20);
-    
-        // Create instance of the problem
-
-        State initialState = new State(knapsacks, items);
-        // Solve the problem
-        State bestStateResult = aStarSearch(initialState);
-
-        // Print the best state found
-        System.out.println(bestStateResult);
-
-        // Print the total value of the best state found
-        if(bestStateResult != null){
-            System.out.println("Total value: " + bestStateResult.calculateTotalValue());
+    private static void writeResultsToCSV(String filePath, List<? extends Number> dfsData, List<? extends Number> bfsData, List<? extends Number> aStarData) throws IOException {
+        try (FileWriter csvWriter = new FileWriter(filePath)) {
+            csvWriter.append("DFS,BFS,A*\n");
+            for (int i = 0; i < dfsData.size(); i++) {
+                csvWriter.append(dfsData.get(i) + "," + bfsData.get(i) + "," + aStarData.get(i) + "\n");
+            }
+            csvWriter.flush();
         }
     }
+
+    
+    public static void main(String[] args) {
+        // Example configuration
+        int N = 17; // Number of items
+        int K = 2; // Number of knapsacks
+
+        // Test the algorithms
+        List<Long> execTimesDFS = new ArrayList<>();
+        List<Long> execTimesBFS = new ArrayList<>();
+        List<Long> execTimesAStar = new ArrayList<>();
+
+        List<Long> nodesExploredDFS = new ArrayList<>();
+        List<Long> nodesExploredBFS = new ArrayList<>();
+        List<Long> nodesExploredAStar = new ArrayList<>();
+
+        List<Integer> maxStackSizeDFS = new ArrayList<>();
+        List<Integer> maxQueueSizeBFS = new ArrayList<>();
+        List<Integer> maxOpenSizeAStar = new ArrayList<>();
+
+        List<Integer> bestValuesDFS = new ArrayList<>();
+        List<Integer> bestValuesBFS = new ArrayList<>();
+        List<Integer> bestValuesAStar = new ArrayList<>();
+
+        for (int i = 0; i < nbTests; i++) {
+            List<Item> items = generateItems(N);
+            int totalItemWeight = items.stream().mapToInt(item -> item.weight).sum();
+            List<Knapsack> knapsacks = generateKnapsacks(K, totalItemWeight);
+            State initialState = new State(knapsacks, items);
+            System.out.println(knapsacks);
+            System.out.println(items);
+
+            long startTime = System.currentTimeMillis();
+            SearchResult resultDFS = dfsSearchTesting(initialState);
+            long endTime = System.currentTimeMillis();
+            execTimesDFS.add(endTime - startTime);
+            nodesExploredDFS.add(resultDFS.nodesExplored);
+            maxStackSizeDFS.add(resultDFS.maxStackSize);
+            bestValuesDFS.add(resultDFS.bestValue);
+
+            startTime = System.currentTimeMillis();
+            SearchResult resultBFS = bfsSearchTesting(initialState);
+            endTime = System.currentTimeMillis();
+            execTimesBFS.add(endTime - startTime);
+            nodesExploredBFS.add(resultBFS.nodesExplored);
+            maxQueueSizeBFS.add(resultBFS.maxStackSize);
+            bestValuesBFS.add(resultBFS.bestValue);
+
+            startTime = System.currentTimeMillis();
+            SearchResult resultAStar = aStarSearchTesting(initialState);
+            endTime = System.currentTimeMillis();
+            execTimesAStar.add(endTime - startTime);
+            nodesExploredAStar.add(resultAStar.nodesExplored);
+            maxOpenSizeAStar.add(resultAStar.maxStackSize);
+            bestValuesAStar.add(resultAStar.bestValue);
+            items = null;
+            knapsacks = null;
+            initialState = null;
+        }
+
+        try {
+            writeResultsToCSV("./test_results/" + K + "-" + N + "-nodes_explored.csv", nodesExploredDFS, nodesExploredBFS, nodesExploredAStar);
+            writeResultsToCSV("./test_results/" + K + "-" + N + "-exec_times.csv", execTimesDFS, execTimesBFS, execTimesAStar);
+            writeResultsToCSV("./test_results/" + K + "-" + N + "-max_nodes_mem.csv", maxStackSizeDFS, maxQueueSizeBFS, maxOpenSizeAStar);
+            writeResultsToCSV("./test_results/" + K + "-" + N + "-best_values.csv", bestValuesDFS, bestValuesBFS, bestValuesAStar);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
 }

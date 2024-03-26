@@ -10,6 +10,6 @@ public class AStarComparator implements Comparator<State> {
         int score2 = state2.calculateCost() + state2.calculateHeuristic();
 
         // Compare scores
-        return Integer.compare(score1, score2);
+        return Integer.compare(score2, score1);
     }
 }
