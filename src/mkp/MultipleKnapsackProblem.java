@@ -131,23 +131,23 @@ public class MultipleKnapsackProblem {
 
     public static void main(String[] args) {
         // Create items
-        Item item1 = new Item(6, 6);
-        Item item2 = new Item(6, 3);
-        Item item3 = new Item(9, 5);
-        Item item4 = new Item(12, 8);
-        Item item5 = new Item(15, 12);
-        Item item6 = new Item(18, 21);
-        Item item7 = new Item(17, 16);
-        Item item8 = new Item(24, 19);
-        Item item9 = new Item(19, 14);
-        Item item10 = new Item(27, 18);
-        Item item11 = new Item(10, 7);
-        Item item12 = new Item(8, 4);
-        Item item13 = new Item(14, 9);
-        Item item14 = new Item(16, 11);
-        Item item15 = new Item(20, 15);
-        // Item item16 = new Item(22, 17);
-        // Item item17 = new Item(9, 5);
+        Item item1 = new Item(79, 39);
+        Item item2 = new Item(91, 67);
+        Item item3 = new Item(27, 89);
+        Item item4 = new Item(7, 40);
+        Item item5 = new Item(60, 49);
+        Item item6 = new Item(81, 6);
+        Item item7 = new Item(66, 36);
+        Item item8 = new Item(30, 50);
+        Item item9 = new Item(76, 46);
+        Item item10 = new Item(21, 85);
+        Item item11 = new Item(38, 19);
+        Item item12 = new Item(93, 66);
+        Item item13 = new Item(26, 72);
+        Item item14 = new Item(82, 75);
+        Item item15 = new Item(96, 23);
+        Item item16 = new Item(63, 29);
+        Item item17 = new Item(45, 28);
         // Item item18 = new Item(26, 20);
         // Item item19 = new Item(21, 13);
         // Item item20 = new Item(30, 22);
@@ -168,9 +168,8 @@ public class MultipleKnapsackProblem {
         // Item item14 = new Item(36, 30);
 	    // Item item15 = new Item(36, 25);
         // Create knapsacks
-        Knapsack knapsack1 = new Knapsack(40);
-        Knapsack knapsack2 = new Knapsack(24);
-        Knapsack knapsack3 = new Knapsack(70);
+        Knapsack knapsack1 = new Knapsack(484);
+        Knapsack knapsack2 = new Knapsack(484);
         // Knapsack knapsack4 = new Knapsack(1000);
         // Knapsack knapsack5 = new Knapsack(1200);
 
@@ -178,7 +177,7 @@ public class MultipleKnapsackProblem {
         List<Knapsack> knapsacks = new ArrayList<>();
         knapsacks.add(knapsack1);
         knapsacks.add(knapsack2);
-        knapsacks.add(knapsack3);
+        // knapsacks.add(knapsack3);
         // knapsacks.add(knapsack4);
         // knapsacks.add(knapsack5);
 
@@ -194,13 +193,13 @@ public class MultipleKnapsackProblem {
         items.add(item8);
         items.add(item9);
         items.add(item10);
-        // items.add(item11);
-        // items.add(item12);
-        // items.add(item13);
-        // items.add(item14);
-        // items.add(item15);
-        // items.add(item16);
-        // items.add(item17);
+        items.add(item11);
+        items.add(item12);
+        items.add(item13);
+        items.add(item14);
+        items.add(item15);
+        items.add(item16);
+        items.add(item17);
         // items.add(item18);
         // items.add(item19);
         // items.add(item20);
@@ -209,7 +208,7 @@ public class MultipleKnapsackProblem {
 
         State initialState = new State(knapsacks, items);
         // Solve the problem
-        State bestStateResult = aStarSearch(initialState);
+        State bestStateResult = bfsSearch(initialState);
 
         // Print the best state found
         System.out.println(bestStateResult);

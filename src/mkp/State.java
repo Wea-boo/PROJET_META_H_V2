@@ -85,7 +85,7 @@
         }
 
         public int calculateCost(){
-            return -calculateTotalValue();
+            return calculateTotalValue();
         }
 
 
@@ -124,32 +124,21 @@
         }
 
         public int calculateHeuristic() {
-            // Calculate remaining capacities for each knapsack
+            // Dynamically adjust item values based on remaining capacity
             int[] remainingCapacities = new int[knapsacks.size()];
             for (int i = 0; i < knapsacks.size(); i++) {
                 remainingCapacities[i] = knapsacks.get(i).capacity - knapsackWeights[i];
             }
+            
+            int totalRemainingCapacity = Arrays.stream(remainingCapacities).sum();
+            List<Item> remainingItems = new ArrayList<>(items.subList(nextItemIndex, items.size()));
         
-            // Consider only items from nextItemIndex onwards
-            List<Item> unplacedItems = new ArrayList<>(items.subList(nextItemIndex, items.size()));
-            unplacedItems.sort((item1, item2) -> Double.compare(item2.value / (double) item2.weight, item1.value / (double) item1.weight));
-        
-            // Estimate potential value addition from unplaced items
-            int heuristicValue = 0;
-            for (int i = 0; i < remainingCapacities.length; i++) {
-                int capacity = remainingCapacities[i];
-                for (Item item : unplacedItems) {
-                    if (capacity >= item.weight) {
-                        heuristicValue += item.value;
-                        capacity -= item.weight; // Adjust remaining capacity
-                    } else {
-                        // "Virtually" place part of the item to utilize remaining capacity
-                        double partialValue = ((double) capacity / item.weight) * item.value;
-                        heuristicValue += partialValue;
-                        break; // Proceed to the next knapsack
-                    }
-                }
-            }
+            int heuristicValue = remainingItems.stream()
+                .sorted((item1, item2) -> Double.compare(
+                    item2.value * ((double)remainingCapacities[item2.weight % remainingCapacities.length] / totalRemainingCapacity),
+                    item1.value * ((double)remainingCapacities[item1.weight % remainingCapacities.length] / totalRemainingCapacity)))
+                .mapToInt(item -> item.value)
+                .sum();
         
             return heuristicValue;
         }
