@@ -18,14 +18,15 @@ import java.util.Stack;
 public class MultipleKnapsackProblem {
     private static final Random rand = new Random();
     private static final int nbTests = 10;
+
     public static class SearchResult {
-        State bestState;
+
         long nodesExplored;
         int maxStackSize;
         int bestValue;
 
-        public SearchResult(State bestState, long nodesExplored, int maxStackSize, int bestValue) {
-            this.bestState = bestState;
+        public SearchResult(long nodesExplored, int maxStackSize, int bestValue) {
+
             this.nodesExplored = nodesExplored;
             this.maxStackSize = maxStackSize;
             this.bestValue = bestValue;
@@ -87,7 +88,7 @@ public class MultipleKnapsackProblem {
                 maxStackSize = stack.size();
             }
         }
-        return new SearchResult(bestState, nodesExplored, maxStackSize, bestValue);
+        return new SearchResult(nodesExplored, maxStackSize, bestValue);
     }
     
     public static State bfsSearch(State initialState) {
@@ -141,7 +142,7 @@ public class MultipleKnapsackProblem {
                 maxQueueSize = queue.size();
             }
         }
-        return new SearchResult(bestState, nodesExplored, maxQueueSize, bestValue);
+        return new SearchResult(nodesExplored, maxQueueSize, bestValue);
     }
 
     public static State aStarSearch(State initialState){
@@ -212,7 +213,7 @@ public class MultipleKnapsackProblem {
                 maxOpenSize = open.size();
             }
         }
-        return new SearchResult(bestState, nodesExplored, maxOpenSize, bestValue);
+        return new SearchResult(nodesExplored, maxOpenSize, bestValue);
     }
     
 
@@ -299,9 +300,6 @@ public class MultipleKnapsackProblem {
             nodesExploredAStar.add(resultAStar.nodesExplored);
             maxOpenSizeAStar.add(resultAStar.maxStackSize);
             bestValuesAStar.add(resultAStar.bestValue);
-            items = null;
-            knapsacks = null;
-            initialState = null;
         }
 
         try {
