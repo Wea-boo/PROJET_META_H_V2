@@ -249,8 +249,8 @@ public class MultipleKnapsackProblem {
     
     public static void main(String[] args) {
         // Example configuration
-        int N = 17; // Number of items
-        int K = 2; // Number of knapsacks
+        int N = 15; // Number of items
+        int K = 3; // Number of knapsacks
 
         // Test the algorithms
         List<Long> execTimesDFS = new ArrayList<>();
@@ -285,13 +285,22 @@ public class MultipleKnapsackProblem {
             maxStackSizeDFS.add(resultDFS.maxStackSize);
             bestValuesDFS.add(resultDFS.bestValue);
 
-            startTime = System.currentTimeMillis();
-            SearchResult resultBFS = bfsSearchTesting(initialState);
-            endTime = System.currentTimeMillis();
-            execTimesBFS.add(endTime - startTime);
-            nodesExploredBFS.add(resultBFS.nodesExplored);
-            maxQueueSizeBFS.add(resultBFS.maxStackSize);
-            bestValuesBFS.add(resultBFS.bestValue);
+            try{
+                startTime = System.currentTimeMillis();
+                SearchResult resultBFS = bfsSearchTesting(initialState);
+                endTime = System.currentTimeMillis();
+                execTimesBFS.add(endTime - startTime);
+                nodesExploredBFS.add(resultBFS.nodesExplored);
+                maxQueueSizeBFS.add(resultBFS.maxStackSize);
+                bestValuesBFS.add(resultBFS.bestValue);
+            } catch (OutOfMemoryError e){
+                System.out.println("BFS ran out of memory");
+                execTimesBFS.add((long) -1);
+                nodesExploredBFS.add((long) -1);
+                maxQueueSizeBFS.add(-1);
+                bestValuesBFS.add(-1);
+            }
+
 
             startTime = System.currentTimeMillis();
             SearchResult resultAStar = aStarSearchTesting(initialState);
