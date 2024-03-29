@@ -79,26 +79,34 @@ public class MKPInterface extends Application {
         
 
         // Layout for algorithm selection and file chooser
-        VBox algorithmChooserLayout = new VBox(10, algorithmComboBox, selectFileButton, maxDepthSpinner);
-        algorithmChooserLayout.setPadding(new Insets(10));
+        VBox controlPanel = new VBox(10, algorithmComboBox, selectFileButton, maxDepthSpinner, startButton);
+        controlPanel.setPadding(new Insets(10));
+        controlPanel.fillWidthProperty().setValue(true);
 
-        // Layout for performance criteria
-        VBox performanceCriteriaLayout = new VBox(10, executionTimeLabel, nodesExploredLabel, maxNodesInMemoryLabel, totalValueLabel, unplacedItemsLabel);
-        performanceCriteriaLayout.setPadding(new Insets(10));
+        // Performance criteria layout
+        VBox metricsLayout = new VBox(10, executionTimeLabel, nodesExploredLabel, maxNodesInMemoryLabel, totalValueLabel, unplacedItemsLabel);
+        metricsLayout.setPadding(new Insets(10));
 
-        // Main layout
-        HBox mainLayout = new HBox(10, algorithmChooserLayout, performanceCriteriaLayout);
-        mainLayout.setPadding(new Insets(10));
+        // Main split layout with knapsack display on the left and controls and metrics on the right
+        GridPane splitLayout = new GridPane();
 
-        // Bottom layout
-        VBox bottomLayout = new VBox(10, startButton, knapsackDisplayScroll);
-        bottomLayout.setPadding(new Insets(10));
+        // Column constraints for the knapsack display (50% width)
+        ColumnConstraints knapsackDisplayColumn = new ColumnConstraints();
+        knapsackDisplayColumn.setPercentWidth(50);
+        
+        splitLayout.getColumnConstraints().add(knapsackDisplayColumn);
+    
+        // Column constraints for the control and metrics panel (50% width)
+        ColumnConstraints controlMetricsColumn = new ColumnConstraints();
+        controlMetricsColumn.setPercentWidth(50);
+        splitLayout.getColumnConstraints().add(controlMetricsColumn);
+    
+        // Add the knapsack display and control panel to the grid
+        splitLayout.add(knapsackDisplayScroll, 0, 0); // Add to column 0
+        splitLayout.add(new VBox(10, controlPanel, metricsLayout), 1, 0); // Add to column 1
 
-        // Root layout
-        VBox rootLayout = new VBox(10, mainLayout, bottomLayout);
-
-        // Scene and stage setup
-        Scene scene = new Scene(rootLayout, 800, 600);
+        // Set the scene with the new layout
+        Scene scene = new Scene(splitLayout, 500, 350); // Adjusted for a wider window
         primaryStage.setTitle("Multiple Knapsack Problem Solver");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -125,7 +133,7 @@ public class MKPInterface extends Application {
     private void runSearch() {
         if (initialState.get() == null) {
             showAlert("Please select a test file first.", AlertType.WARNING);
-            return;
+            return; // Don't proceed with the search
         }
 
         disableUI();
