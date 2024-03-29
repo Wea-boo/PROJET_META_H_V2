@@ -1,5 +1,7 @@
 package mkp;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -246,79 +248,151 @@ public class MultipleKnapsackProblem {
         }
     }
 
-    
-    public static void main(String[] args) {
-        // Example configuration
-        int N = 15; // Number of items
-        int K = 3; // Number of knapsacks
+        public static State CSVToState(String filename) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            // Read the first line to get the number of items and knapsacks
+            line = br.readLine();
+            String[] sizes = line.split(",");
+            int numItems = Integer.parseInt(sizes[0]);
+            int numKnapsacks = Integer.parseInt(sizes[1]);
 
-        // Test the algorithms
-        List<Long> execTimesDFS = new ArrayList<>();
-        List<Long> execTimesBFS = new ArrayList<>();
-        List<Long> execTimesAStar = new ArrayList<>();
-
-        List<Long> nodesExploredDFS = new ArrayList<>();
-        List<Long> nodesExploredBFS = new ArrayList<>();
-        List<Long> nodesExploredAStar = new ArrayList<>();
-
-        List<Integer> maxStackSizeDFS = new ArrayList<>();
-        List<Integer> maxQueueSizeBFS = new ArrayList<>();
-        List<Integer> maxOpenSizeAStar = new ArrayList<>();
-
-        List<Integer> bestValuesDFS = new ArrayList<>();
-        List<Integer> bestValuesBFS = new ArrayList<>();
-        List<Integer> bestValuesAStar = new ArrayList<>();
-
-        for (int i = 0; i < nbTests; i++) {
-            List<Item> items = generateItems(N);
-            int totalItemWeight = items.stream().mapToInt(item -> item.weight).sum();
-            List<Knapsack> knapsacks = generateKnapsacks(K, totalItemWeight);
-            State initialState = new State(knapsacks, items);
-            System.out.println(knapsacks);
-            System.out.println(items);
-
-            long startTime = System.currentTimeMillis();
-            SearchResult resultDFS = dfsSearchTesting(initialState);
-            long endTime = System.currentTimeMillis();
-            execTimesDFS.add(endTime - startTime);
-            nodesExploredDFS.add(resultDFS.nodesExplored);
-            maxStackSizeDFS.add(resultDFS.maxStackSize);
-            bestValuesDFS.add(resultDFS.bestValue);
-
-            try{
-                startTime = System.currentTimeMillis();
-                SearchResult resultBFS = bfsSearchTesting(initialState);
-                endTime = System.currentTimeMillis();
-                execTimesBFS.add(endTime - startTime);
-                nodesExploredBFS.add(resultBFS.nodesExplored);
-                maxQueueSizeBFS.add(resultBFS.maxStackSize);
-                bestValuesBFS.add(resultBFS.bestValue);
-            } catch (OutOfMemoryError e){
-                System.out.println("BFS ran out of memory");
-                execTimesBFS.add((long) -1);
-                nodesExploredBFS.add((long) -1);
-                maxQueueSizeBFS.add(-1);
-                bestValuesBFS.add(-1);
+            // Read the second line to get the capacities of knapsacks
+            line = br.readLine();
+            String[] capacities = line.split(",");
+            List<Knapsack> knapsacks = new ArrayList<>();
+            for (int i = 0; i < numKnapsacks; i++) {
+                int capacity = Integer.parseInt(capacities[i]);
+                knapsacks.add(new Knapsack(capacity));
             }
 
+            // Read subsequent lines to create items
+            List<Item> items = new ArrayList<>();
+            for (int i = 0; i < numItems; i++) {
+                line = br.readLine();
+                String[] itemData = line.split(",");
+                int weight = Integer.parseInt(itemData[0]);
+                int value = Integer.parseInt(itemData[1]);
+                items.add(new Item(weight, value));
+            }
 
-            startTime = System.currentTimeMillis();
-            SearchResult resultAStar = aStarSearchTesting(initialState);
-            endTime = System.currentTimeMillis();
-            execTimesAStar.add(endTime - startTime);
-            nodesExploredAStar.add(resultAStar.nodesExplored);
-            maxOpenSizeAStar.add(resultAStar.maxStackSize);
-            bestValuesAStar.add(resultAStar.bestValue);
+            // Create and return the state object
+            return new State(knapsacks, items);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return null; // Return null if there's an error
+    }
 
-        try {
-            writeResultsToCSV("./test_results/" + K + "-" + N + "-nodes_explored.csv", nodesExploredDFS, nodesExploredBFS, nodesExploredAStar);
-            writeResultsToCSV("./test_results/" + K + "-" + N + "-exec_times.csv", execTimesDFS, execTimesBFS, execTimesAStar);
-            writeResultsToCSV("./test_results/" + K + "-" + N + "-max_nodes_mem.csv", maxStackSizeDFS, maxQueueSizeBFS, maxOpenSizeAStar);
-            writeResultsToCSV("./test_results/" + K + "-" + N + "-best_values.csv", bestValuesDFS, bestValuesBFS, bestValuesAStar);
+    public static void generateCSVRandomTestFile(String filePath, int K, int N) {
+        try (FileWriter csvWriter = new FileWriter(filePath)) {
+            csvWriter.append(N + "," + K + "\n"); //1st line: number of items, number of knapsacks
+            List<Item> items = generateItems(N);
+            List<Knapsack> knapsacks = generateKnapsacks(K, items.stream().mapToInt(item -> item.weight).sum());
+
+            for (Knapsack knapsack : knapsacks) {
+                csvWriter.append(String.valueOf(knapsack.capacity)); // Convert int to String
+                if(knapsack != knapsacks.get(knapsacks.size() - 1)){
+                    csvWriter.append(",");
+                } else {
+                    csvWriter.append("\n");
+                }
+            }
+            for (Item item : items) {
+                csvWriter.append(item.weight + "," + item.value + "\n");
+            }
+            csvWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     
+    // public static void main(String[] args) {
+    //     // Example configuration
+    //     int N = 15; // Number of items
+    //     int K = 3; // Number of knapsacks
+
+    //     // Test the algorithms
+    //     List<Long> execTimesDFS = new ArrayList<>();
+    //     List<Long> execTimesBFS = new ArrayList<>();
+    //     List<Long> execTimesAStar = new ArrayList<>();
+
+    //     List<Long> nodesExploredDFS = new ArrayList<>();
+    //     List<Long> nodesExploredBFS = new ArrayList<>();
+    //     List<Long> nodesExploredAStar = new ArrayList<>();
+
+    //     List<Integer> maxStackSizeDFS = new ArrayList<>();
+    //     List<Integer> maxQueueSizeBFS = new ArrayList<>();
+    //     List<Integer> maxOpenSizeAStar = new ArrayList<>();
+
+    //     List<Integer> bestValuesDFS = new ArrayList<>();
+    //     List<Integer> bestValuesBFS = new ArrayList<>();
+    //     List<Integer> bestValuesAStar = new ArrayList<>();
+
+    //     for (int i = 0; i < nbTests; i++) {
+    //         List<Item> items = generateItems(N);
+    //         int totalItemWeight = items.stream().mapToInt(item -> item.weight).sum();
+    //         List<Knapsack> knapsacks = generateKnapsacks(K, totalItemWeight);
+    //         State initialState = new State(knapsacks, items);
+    //         System.out.println(knapsacks);
+    //         System.out.println(items);
+
+    //         long startTime = System.currentTimeMillis();
+    //         SearchResult resultDFS = dfsSearchTesting(initialState);
+    //         long endTime = System.currentTimeMillis();
+    //         execTimesDFS.add(endTime - startTime);
+    //         nodesExploredDFS.add(resultDFS.nodesExplored);
+    //         maxStackSizeDFS.add(resultDFS.maxStackSize);
+    //         bestValuesDFS.add(resultDFS.bestValue);
+
+    //         try{
+    //             startTime = System.currentTimeMillis();
+    //             SearchResult resultBFS = bfsSearchTesting(initialState);
+    //             endTime = System.currentTimeMillis();
+    //             execTimesBFS.add(endTime - startTime);
+    //             nodesExploredBFS.add(resultBFS.nodesExplored);
+    //             maxQueueSizeBFS.add(resultBFS.maxStackSize);
+    //             bestValuesBFS.add(resultBFS.bestValue);
+    //         } catch (OutOfMemoryError e){
+    //             System.out.println("BFS ran out of memory");
+    //             execTimesBFS.add((long) -1);
+    //             nodesExploredBFS.add((long) -1);
+    //             maxQueueSizeBFS.add(-1);
+    //             bestValuesBFS.add(-1);
+    //         }
+
+
+    //         startTime = System.currentTimeMillis();
+    //         SearchResult resultAStar = aStarSearchTesting(initialState);
+    //         endTime = System.currentTimeMillis();
+    //         execTimesAStar.add(endTime - startTime);
+    //         nodesExploredAStar.add(resultAStar.nodesExplored);
+    //         maxOpenSizeAStar.add(resultAStar.maxStackSize);
+    //         bestValuesAStar.add(resultAStar.bestValue);
+    //     }
+
+    //     try {
+    //         writeResultsToCSV("./test_results/" + K + "-" + N + "-nodes_explored.csv", nodesExploredDFS, nodesExploredBFS, nodesExploredAStar);
+    //         writeResultsToCSV("./test_results/" + K + "-" + N + "-exec_times.csv", execTimesDFS, execTimesBFS, execTimesAStar);
+    //         writeResultsToCSV("./test_results/" + K + "-" + N + "-max_nodes_mem.csv", maxStackSizeDFS, maxQueueSizeBFS, maxOpenSizeAStar);
+    //         writeResultsToCSV("./test_results/" + K + "-" + N + "-best_values.csv", bestValuesDFS, bestValuesBFS, bestValuesAStar);
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }
+    // }
+    
+    public static void main(String[] args) {
+
+        int[] Ks = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+        int[] Ns = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
+        int nbFile = 5;
+
+        for(int K: Ks){
+            for(int N: Ns){
+                for(int i = 0; i < nbFile; i++){
+                    generateCSVRandomTestFile("./test_files/" + K + "-" + N + "-test" + (i+1) + ".csv", K, N);
+                }
+            }
+        }
+    }
 }
