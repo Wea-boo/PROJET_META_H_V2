@@ -4,19 +4,19 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {
-            "type": "java",
-            "name": "MultipleKnapsackProblem",
-            "request": "launch",
-            "mainClass": "mkp.MultipleKnapsackProblem",
-            "projectName": "PROJET_META_H_V2_764d001b"
-        },
+        // {
+        //     "type": "java",
+        //     "name": "MultipleKnapsackProblem",
+        //     "request": "launch",
+        //     "mainClass": "mkp.MultipleKnapsackProblem",
+        //     "projectName": "PROJET_META_H_V2_764d001b"
+        // },
         {
             "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "-Xms512m -Xmx10g"
+            "vmArgs": "-Xms512m -Xmx10g --module-path \"C:/Users/ACER/Downloads/javafx-sdk-21.0.2/lib\" --add-modules javafx.controls,javafx.graphics"
         }
     ]
 }
