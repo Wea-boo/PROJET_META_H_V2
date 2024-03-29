@@ -28,8 +28,10 @@ public class MKPInterface extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Dropdown for algorithm selection
+        Label algorithmLabel = new Label("Select Algorithm: ");
         algorithmComboBox = new ComboBox<>(FXCollections.observableArrayList("DFS", "BFS", "A*"));
         algorithmComboBox.getSelectionModel().selectFirst(); // Default selection
+        VBox algorithmChooser = new VBox(10, algorithmLabel, algorithmComboBox);
 
         // Button to open file chooser for selecting test files
         fileChooser = new FileChooser();
@@ -72,23 +74,23 @@ public class MKPInterface extends Application {
         
 
         // Layout for algorithm selection and file chooser
-        VBox algorithmChooserLayout = new VBox(10, algorithmComboBox, selectFileButton, maxDepthSpinner);
+        VBox algorithmChooserLayout = new VBox(10, algorithmChooser, selectFileButton, maxDepthSpinner);
         algorithmChooserLayout.setPadding(new Insets(10));
 
         // Layout for performance criteria
         VBox performanceCriteriaLayout = new VBox(10, executionTimeLabel, nodesExploredLabel, maxNodesInMemoryLabel, totalValueLabel, unplacedItemsLabel);
         performanceCriteriaLayout.setPadding(new Insets(10));
-
+        
         // Main layout
-        HBox mainLayout = new HBox(10, algorithmChooserLayout, performanceCriteriaLayout);
+        VBox mainLayout = new VBox(10, algorithmChooserLayout, performanceCriteriaLayout, startButton);
         mainLayout.setPadding(new Insets(10));
 
         // Bottom layout
-        VBox bottomLayout = new VBox(10, startButton, solutionTable);
-        bottomLayout.setPadding(new Insets(10));
+        HBox rootLayout = new HBox(10, solutionTable, mainLayout);
+        //bottomLayout.setPadding(new Insets(10));
 
         // Root layout
-        VBox rootLayout = new VBox(10, mainLayout, bottomLayout);
+        //VBox rootLayout = new VBox(10, mainLayout, bottomLayout);
 
         // Scene and stage setup
         Scene scene = new Scene(rootLayout, 800, 600);
