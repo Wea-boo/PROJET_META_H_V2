@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import mkp.MultipleKnapsackProblem.*;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
@@ -24,6 +25,8 @@ public class MKPInterface extends Application {
     private FileChooser fileChooser;
     private File selectedFile;
     private AtomicReference<State> initialState = new AtomicReference<>();
+    private ScrollPane knapsackDisplayScroll; // Scroll pane to contain the knapsack display
+    private HBox knapsackContainer; // HBox to hold VBox columns for knapsacks
 
     @Override
     public void start(Stage primaryStage) {
@@ -68,7 +71,11 @@ public class MKPInterface extends Application {
         startButton.setOnAction(e -> runSearch());
 
         // Table to display the knapsacks and items
-        TableView<Item> solutionTable = new TableView<>();
+        knapsackContainer = new HBox(5); // 5 is the spacing between knapsack columns
+        knapsackDisplayScroll = new ScrollPane(knapsackContainer);
+        knapsackDisplayScroll.setFitToWidth(true);
+        knapsackDisplayScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        knapsackDisplayScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         
 
         // Layout for algorithm selection and file chooser
@@ -84,7 +91,7 @@ public class MKPInterface extends Application {
         mainLayout.setPadding(new Insets(10));
 
         // Bottom layout
-        VBox bottomLayout = new VBox(10, startButton, solutionTable);
+        VBox bottomLayout = new VBox(10, startButton, knapsackDisplayScroll);
         bottomLayout.setPadding(new Insets(10));
 
         // Root layout
@@ -118,7 +125,7 @@ public class MKPInterface extends Application {
     private void runSearch() {
         if (initialState.get() == null) {
             showAlert("Please select a test file first.", AlertType.WARNING);
-            return; // Don't proceed with the search
+            return;
         }
 
         disableUI();
@@ -145,8 +152,7 @@ public class MKPInterface extends Application {
             SearchResult result = searchTask.getValue();
             Platform.runLater(() -> {
                 updatePerformanceLabels(result);
-
-                // TODO: Display the solution in a table
+                updateKnapsackDisplay(result);
                 enableUI();
             });
         });
@@ -166,6 +172,37 @@ public class MKPInterface extends Application {
         new Thread(searchTask).start();
     }
 
+    private void updateKnapsackDisplay(SearchResult result) {
+        State bestState = result.bestState;
+        knapsackContainer.getChildren().clear(); // Clear current display
+
+        // Iterate through knapsacks and create a column (VBox) for each
+        for (int i = 0; i < bestState.knapsacks.size(); i++) {
+            VBox knapsackColumn = new VBox();
+            knapsackColumn.setPadding(new Insets(5)); // Padding inside the column
+            Label knapsackLabel = new Label("Knapsack " + (i + 1));
+            knapsackColumn.getChildren().add(knapsackLabel);
+
+            // Add items to the column as small boxes (Rectangles or Labels)
+            for (int j = 0; j < bestState.items.size(); j++) {
+                if (bestState.itemInKnapsack[j] == i) {
+                    Label itemLabel = new Label("Item " + j + " (" + bestState.items.get(j).weight + ", " + bestState.items.get(j).value + ")");
+                    itemLabel.setStyle("-fx-border-color: black; -fx-padding: 5;"); // Style as needed
+                    knapsackColumn.getChildren().add(itemLabel);
+                }
+            }
+
+            // Calculate and add the fill percentage at the bottom
+            double weight = bestState.knapsackWeights[i];
+            double capacity = bestState.knapsacks.get(i).capacity;
+            double fillPercentage = (weight / capacity) * 100;
+            Label fillLabel = new Label(String.format("%.1f%% full", fillPercentage));
+            knapsackColumn.getChildren().add(fillLabel);
+
+            knapsackContainer.getChildren().add(knapsackColumn);
+        }
+    }
+
     private void updatePerformanceLabels(SearchResult result) {
         // Update each label with the specific piece of information from the SearchResult
         executionTimeLabel.setText("Execution Time: " + result.executionTime + " ms");
@@ -175,14 +212,10 @@ public class MKPInterface extends Application {
         StringBuilder unplacedItems = new StringBuilder("Unplaced Items: {");
         for (int i = 0; i < result.bestState.itemInKnapsack.length; i++) {
             if (result.bestState.itemInKnapsack[i] == -1) {
-                if(i != result.bestState.itemInKnapsack.length - 1) {
-                    unplacedItems.append("item ").append(i).append(", ");
-                } else {
-                    unplacedItems.append("item ").append(i);
-                }
+                 unplacedItems.append("item ").append(i).append(", ");
             }
-
         }
+        unplacedItems.delete(unplacedItems.length() - 2, unplacedItems.length());
         unplacedItems.append("}");
         unplacedItemsLabel.setText(unplacedItems.toString());
     }
