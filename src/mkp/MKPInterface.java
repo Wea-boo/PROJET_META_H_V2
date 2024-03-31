@@ -93,20 +93,25 @@ public class MKPInterface extends Application {
         // Column constraints for the knapsack display (50% width)
         ColumnConstraints knapsackDisplayColumn = new ColumnConstraints();
         knapsackDisplayColumn.setPercentWidth(50);
-        
         splitLayout.getColumnConstraints().add(knapsackDisplayColumn);
     
         // Column constraints for the control and metrics panel (50% width)
         ColumnConstraints controlMetricsColumn = new ColumnConstraints();
         controlMetricsColumn.setPercentWidth(50);
         splitLayout.getColumnConstraints().add(controlMetricsColumn);
-    
+
+        // Row constraints for the layout (100% height)
+        RowConstraints row = new RowConstraints();
+        row.setPercentHeight(100);
+        splitLayout.getRowConstraints().add(row);
+        
         // Add the knapsack display and control panel to the grid
         splitLayout.add(knapsackDisplayScroll, 0, 0); // Add to column 0
         splitLayout.add(new VBox(10, controlPanel, metricsLayout), 1, 0); // Add to column 1
 
         // Set the scene with the new layout
-        Scene scene = new Scene(splitLayout, 500, 350); // Adjusted for a wider window
+        Scene scene = new Scene(splitLayout, 500, 308); // Adjusted for a wider window
+        splitLayout.setPrefSize(1000, 600); // Set the preferred size of the split layout
         primaryStage.setTitle("Multiple Knapsack Problem Solver");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -194,8 +199,11 @@ public class MKPInterface extends Application {
             // Add items to the column as small boxes (Rectangles or Labels)
             for (int j = 0; j < bestState.items.size(); j++) {
                 if (bestState.itemInKnapsack[j] == i) {
-                    Label itemLabel = new Label("Item " + j + " (" + bestState.items.get(j).weight + ", " + bestState.items.get(j).value + ")");
-                    itemLabel.setStyle("-fx-border-color: black; -fx-padding: 5;"); // Style as needed
+                    //Label itemLabel = new Label("Item " + j + " (" + bestState.items.get(j).weight + ", " + bestState.items.get(j).value + ")");
+                    Label itemLabel = new Label("Item " + j);
+                    //hover effect on item label displaying the weight and value of the item
+                    itemLabel.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-margin: 5;"); // Style as needed
+                    
                     knapsackColumn.getChildren().add(itemLabel);
                 }
             }
@@ -218,12 +226,15 @@ public class MKPInterface extends Application {
         maxNodesInMemoryLabel.setText("Max Number Of Nodes in Memory: " + result.maxOpenSize);
         totalValueLabel.setText("Total Value of All Knapsacks: " + result.bestValue);
         StringBuilder unplacedItems = new StringBuilder("Unplaced Items: {");
+        int unplacedCount = 0;
         for (int i = 0; i < result.bestState.itemInKnapsack.length; i++) {
             if (result.bestState.itemInKnapsack[i] == -1) {
                  unplacedItems.append("item ").append(i).append(", ");
+                unplacedCount++;
             }
         }
-        unplacedItems.delete(unplacedItems.length() - 2, unplacedItems.length());
+        
+        if(unplacedCount > 0) unplacedItems.delete(unplacedItems.length() - 2, unplacedItems.length());
         unplacedItems.append("}");
         unplacedItemsLabel.setText(unplacedItems.toString());
     }
