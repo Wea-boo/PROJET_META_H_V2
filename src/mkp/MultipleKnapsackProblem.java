@@ -221,7 +221,7 @@ public class MultipleKnapsackProblem {
     }
     
 
-    public static List<Item> generateItems(int N) {
+    public static List<Item> generateItems(int N) { // N is the number of items, we generate random items with values and weights between 1 and 100
         List<Item> items = new ArrayList<>();
         for (int i = 0; i < N; i++) {
             int weight = 1 + rand.nextInt(100); // Adjust range as needed.
@@ -230,8 +230,8 @@ public class MultipleKnapsackProblem {
         }
         return items;
     }
-
-    public static List<Knapsack> generateKnapsacks(int K, int totalItemWeight) {
+    // this method was used to generate knapsacks for generateCSVRandomTestFile, 20%-50% was deemed as a good range, we would have cases where not all the items would fit, or where all items would fit in, overall deems a fair test
+    public static List<Knapsack> generateKnapsacks(int K, int totalItemWeight) { // K is the number of knapsacks, totalItemWeight is the sum of all item weights
         List<Knapsack> knapsacks = new ArrayList<>();
         for (int i = 0; i < K; i++) {
             int capacity = (int) (totalItemWeight * (0.2 + 0.3 * rand.nextDouble())); // Example: 20%-50% of total weight
@@ -249,7 +249,7 @@ public class MultipleKnapsackProblem {
             csvWriter.flush();
         }
     }
-
+    // this method was used to generate the CSV test files in the test_files folder
     public static void generateCSVRandomTestFile(String filePath, int K, int N) {
         try (FileWriter csvWriter = new FileWriter(filePath)) {
             csvWriter.append(N + "," + K + "\n"); //1st line: number of items, number of knapsacks
@@ -272,7 +272,7 @@ public class MultipleKnapsackProblem {
             e.printStackTrace();
         }
     }
-
+    // this method was used to generate a state instance from a csv file (given the files follows the proper format)
     public static State CSVToState(String filename) {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;

@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import mkp.MultipleKnapsackProblem.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
@@ -31,10 +30,14 @@ public class MKPInterface extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Dropdown for algorithm selection
+        Label algorithmLabel = new Label("Select Resolution Algorithm:");
         algorithmComboBox = new ComboBox<>(FXCollections.observableArrayList("DFS", "BFS", "A*"));
+
+        VBox algorithmSelectionLayout = new VBox(algorithmLabel, algorithmComboBox);
         algorithmComboBox.getSelectionModel().selectFirst(); // Default selection
 
         // Button to open file chooser for selecting test files
+        
         fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
         selectFileButton = new Button("Select Test File");
@@ -54,11 +57,13 @@ public class MKPInterface extends Application {
             }
         });
         
-        // TextField for max depth (could also use a Spinner)
         maxDepthSpinner = new Spinner<>();
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0); // Default range 0-100, initial value 0
         maxDepthSpinner.setValueFactory(valueFactory);
         maxDepthSpinner.setDisable(true);
+
+        Label maxDepthLabel = new Label("Max depth:");
+        VBox maxDepthLayout = new VBox(maxDepthLabel, maxDepthSpinner);
         // Labels for performance criteria
         executionTimeLabel = new Label("Execution Time: ");
         nodesExploredLabel = new Label("Nodes Explored: ");
@@ -79,7 +84,7 @@ public class MKPInterface extends Application {
         
 
         // Layout for algorithm selection and file chooser
-        VBox controlPanel = new VBox(10, algorithmComboBox, selectFileButton, maxDepthSpinner, startButton);
+        VBox controlPanel = new VBox(10, algorithmSelectionLayout, selectFileButton, maxDepthLayout, startButton);
         controlPanel.setPadding(new Insets(10));
         controlPanel.fillWidthProperty().setValue(true);
 
@@ -110,14 +115,14 @@ public class MKPInterface extends Application {
         splitLayout.add(new VBox(10, controlPanel, metricsLayout), 1, 0); // Add to column 1
 
         // Set the scene with the new layout
-        Scene scene = new Scene(splitLayout, 500, 308); // Adjusted for a wider window
-        splitLayout.setPrefSize(1000, 600); // Set the preferred size of the split layout
+        Scene scene = new Scene(splitLayout, 500, 340); // Make it bigger if the knapsack display is too small
+        splitLayout.setPrefSize(1000, 600); 
         primaryStage.setTitle("Multiple Knapsack Problem Solver");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    private void enableUI() {
+    private void enableUI() { // Enable UI elements after the search is done
         Platform.runLater(() -> {
             startButton.setDisable(false);
             algorithmComboBox.setDisable(false);
@@ -126,7 +131,7 @@ public class MKPInterface extends Application {
         });
     }
 
-    private void disableUI() {
+    private void disableUI() { // Disable UI elements while the search is running, the search can take a while, the user should not be able to launch a new search while the current one is running
         Platform.runLater(() -> {
             startButton.setDisable(true);
             algorithmComboBox.setDisable(true);
@@ -163,7 +168,7 @@ public class MKPInterface extends Application {
 
         searchTask.setOnSucceeded(e -> {
             SearchResult result = searchTask.getValue();
-            Platform.runLater(() -> {
+            Platform.runLater(() -> { // Update UI with the necessary information from the search result
                 updatePerformanceLabels(result);
                 updateKnapsackDisplay(result);
                 enableUI();
@@ -171,12 +176,12 @@ public class MKPInterface extends Application {
         });
 
         searchTask.setOnFailed(e -> {
+            // Launch an alarm in case of an exception/error especially OutOfMemoryError for BFS
             Throwable throwable = searchTask.getException();
             Platform.runLater(() -> {
                 String errorMessage = throwable instanceof OutOfMemoryError ? 
                     "OutOfMemoryError during search. Consider increasing heap size or using a shallower depth." : 
                     "Error during search: " + throwable.getMessage();
-        
                 showAlert(errorMessage, Alert.AlertType.ERROR);
                 enableUI();
             });
@@ -192,18 +197,18 @@ public class MKPInterface extends Application {
         // Iterate through knapsacks and create a column (VBox) for each
         for (int i = 0; i < bestState.knapsacks.size(); i++) {
             VBox knapsackColumn = new VBox();
-            knapsackColumn.setPadding(new Insets(5)); // Padding inside the column
+            knapsackColumn.setPadding(new Insets(5));
             Label knapsackLabel = new Label("Knapsack " + (i + 1));
             knapsackColumn.getChildren().add(knapsackLabel);
 
             // Add items to the column as small boxes (Rectangles or Labels)
             for (int j = 0; j < bestState.items.size(); j++) {
                 if (bestState.itemInKnapsack[j] == i) {
-                    //Label itemLabel = new Label("Item " + j + " (" + bestState.items.get(j).weight + ", " + bestState.items.get(j).value + ")");
                     Label itemLabel = new Label("Item " + j);
                     //hover effect on item label displaying the weight and value of the item
                     itemLabel.setStyle("-fx-border-color: black; -fx-padding: 10; -fx-margin: 5;"); // Style as needed
-                    
+                    Tooltip itemTooltip = new Tooltip("Weight: " + bestState.items.get(j).weight + "\nValue: " + bestState.items.get(j).value); // Hover for weight and value
+                    Tooltip.install(itemLabel, itemTooltip);
                     knapsackColumn.getChildren().add(itemLabel);
                 }
             }
@@ -239,7 +244,7 @@ public class MKPInterface extends Application {
         unplacedItemsLabel.setText(unplacedItems.toString());
     }
 
-    private void showAlert(String message, AlertType alertType) {
+    private void showAlert(String message, AlertType alertType) { // show alert for errors, warnings, etc...
         Alert alert = new Alert(alertType);
         alert.setTitle("Search Notification");
         alert.setHeaderText(null); // No header

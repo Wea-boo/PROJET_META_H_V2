@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import mkp.MultipleKnapsackProblem.*;
 
 public class State {
     int[] knapsackWeights; //current weights of all knapsacks, size = K (number of knapsacks)
@@ -40,6 +39,7 @@ public class State {
         State skippedItemState = this.clone();
         skippedItemState.nextItemIndex++;
         successors.add(skippedItemState);
+        // 0 <= number of successors <= K+1
         return successors;
     }
 
@@ -68,22 +68,10 @@ public class State {
         return calculateTotalValue();
     }
 
-    public int calculateHeuristic() {
-        // Dynamically adjust item values based on remaining capacity
-        int[] remainingCapacities = new int[knapsacks.size()];
-        for (int i = 0; i < knapsacks.size(); i++) {
-            remainingCapacities[i] = knapsacks.get(i).capacity - knapsackWeights[i];
-        }
-    
-        int totalRemainingCapacity = Arrays.stream(remainingCapacities).sum();
-        List<Item> remainingItems = new ArrayList<>(items.subList(nextItemIndex, items.size()));
-
-        return remainingItems.stream()
-            .sorted((item1, item2) -> Double.compare(
-            item2.value * ((double)remainingCapacities[item2.weight % remainingCapacities.length] / totalRemainingCapacity),
-            item1.value * ((double)remainingCapacities[item1.weight % remainingCapacities.length] / totalRemainingCapacity)))
-            .mapToInt(item -> item.value)
-            .sum();
+    public int calculateHeuristic() { //h(n) = sum of the values of the remaining items
+        List<Item> remainingItems = new ArrayList<>(items.subList(nextItemIndex, items.size())); 
+        // [0,...,nextItemIndex-1] are already decided, [nextItemIndex,...,N-1] are the remaining items, even if itemInKnapsack[i] == -1, if i < nextItemIndex, it is considered as decided
+        return remainingItems.stream().mapToInt(item -> item.value).sum();
     }
 
     @Override
@@ -94,8 +82,6 @@ public class State {
         cloned.nextItemIndex = this.nextItemIndex;
         return cloned;
     }
-
-        
 
     @Override
     public boolean equals(Object o) {
