@@ -16,7 +16,7 @@
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "-Xms512m -Xmx10g --module-path \"C:/Users/ACER/Downloads/javafx-sdk-21.0.2/lib\" --add-modules javafx.controls,javafx.graphics"
+            "vmArgs": "-Xms512m -Xmx10g"
         }
     ]
 }

@@ -308,5 +308,59 @@ public class MultipleKnapsackProblem {
         }
         return null; // Return null if there's an error
     }
+
+    public static List<Knapsack> readKnapsacksFromCSV(String filename) {
+        List<Knapsack> knapsacks = new ArrayList<>();
+    
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+    
+            // Read the first line to get the number of items and knapsacks
+            line = br.readLine();
+            String[] sizes = line.split(",");
+            int numKnapsacks = Integer.parseInt(sizes[1]);
+    
+            // Read the second line to get the capacities of knapsacks
+            line = br.readLine();
+            String[] capacities = line.split(",");
+            for (int i = 0; i < numKnapsacks; i++) {
+                int capacity = Integer.parseInt(capacities[i]);
+                knapsacks.add(new Knapsack(capacity));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
+        return knapsacks;
+    }
+    
+    public static List<Item> readItemsFromCSV(String filename) {
+        List<Item> items = new ArrayList<>();
+    
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+    
+            // Read the first line to get the number of items and knapsacks
+            line = br.readLine();
+            String[] sizes = line.split(",");
+            int numItems = Integer.parseInt(sizes[0]);
+    
+            // Skip the second line (knapsack capacities)
+            br.readLine();
+    
+            // Read subsequent lines to create items
+            for (int i = 0; i < numItems; i++) {
+                line = br.readLine();
+                String[] itemData = line.split(",");
+                int weight = Integer.parseInt(itemData[0]);
+                int value = Integer.parseInt(itemData[1]);
+                items.add(new Item(weight, value));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
+        return items;
+    }
     
 }
