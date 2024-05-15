@@ -40,7 +40,7 @@ public class Solution implements Comparable<Solution> {
         for (int i = 0; i < knapsackAssignments.length; i++) {
             int randomValue = random.nextInt(100);
             if (randomValue != 0) {
-                // 1/10 chance of not assigning the item to any knapsack
+                // 1/100 chance of not assigning the item to any knapsack
                 knapsackAssignments[i] = random.nextInt(knapsacks.size());
             }
         }
@@ -91,7 +91,8 @@ public class Solution implements Comparable<Solution> {
                 // Try to reassign the removed item to another knapsack
                 boolean assigned = false;
                 for (int j = 0; j < knapsacks.size(); j++) {
-                    if (j != knapsackIndex && itemIndicesByKnapsack.get(j).stream()
+                    List<Integer> targetIndices = itemIndicesByKnapsack.computeIfAbsent(j, k -> new ArrayList<>());
+                    if (j != knapsackIndex && targetIndices.stream()
                             .mapToInt(k -> items.get(k).weight)
                             .sum() + items.get(itemIndex).weight <= knapsacks.get(j).capacity) {
                         itemIndicesByKnapsack.get(j).add(itemIndex);
@@ -163,6 +164,8 @@ public class Solution implements Comparable<Solution> {
     
     public void flip(int index, List<Item> items, List<Knapsack> knapsacks) {
         boolean found = false;
+        // how to handle out of bounds
+        //System.out.println(index);
         if (knapsackAssignments[index] == -1) {
             int start = 0;
 
