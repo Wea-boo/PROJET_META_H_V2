@@ -1,1 +1,2 @@
-Filename,BSO,GA,DFS,BFS,A*
+Filename,BSO_time,GA_time,A*_time,BSO_score,GA_score,A*_score
+3-20-test.csv,2.219200,0.131000,198.334000,894,965,967
